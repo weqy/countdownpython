@@ -1,48 +1,111 @@
+# Desktop Notifier
+# V.1.3 11:44AM 8/1/22
+
 import tkinter as tk
+from plyer import notification
+import time
+import threading
+from playsound import playsound
 from tkinter import *
-import random
-import string
-from tkvideo import tkvideo
+from tkinter import messagebox
 
 
 root = tk.Tk()
 
-canvas1 = tk.Canvas(root, width=400, height=600, relief='raised')
+root.title("countdown")
+
+canvas1 = tk.Canvas(root, width=400, height=300)
 canvas1.pack()
 
-label1 = tk.Label(root, text='Calculate the Square Root')
+label1 = tk.Label(root, text='Countdown')
 label1.config(font=('helvetica', 14))
 canvas1.create_window(200, 25, window=label1)
 
-label2 = tk.Label(root, text='How many characters would you like?')
+label2 = tk.Label(root, text="How long do you want to wait until your notification?")
 label2.config(font=('helvetica', 10))
 canvas1.create_window(200, 100, window=label2)
 
-var1 = IntVar()
-scale1 = tk.Scale(root, from_=5, to=15, orient=HORIZONTAL, variable=var1, showvalue=bool(0))
-canvas1.create_window(200, 140, window=scale1)  # shows entry in canvas
-scale_val_label = tk.Label(root, textvariable=var1)
-canvas1.create_window(250, 140, window=scale_val_label)
-
-characters = list(string.ascii_letters + string.digits + "!@#$%^&*()")
 
 
-def generate_password():
-    user_input = int(scale1.get())
-    random.shuffle(characters)
-    password = []
-    for x in range(user_input):
-        password.append(random.choice(characters))
+# declaration of variables
+hour = StringVar()
+minute = StringVar()
+second = StringVar()
 
-    random.shuffle(password)
-    my_result = ("".join(password))
-    label2 = tk.Label(root, text='Your password is: ' + my_result)
-    label2.config(font=('helvetica', 10))
-    canvas1.create_window(200, 220, window=label2)
+# setting the default value as 0
+hour.set("00")
+minute.set("00")
+second.set("00")
+
+# Using Entry class to take input from the user
+hour_box = Entry(
+    root,
+    width=3,
+    font=("Arial", 18, ""),
+    textvariable=hour
+)
+
+hour_box.place(x=130, y=140)
+
+mins_box = Entry(
+    root,
+    width=3,
+    font=("Arial", 18, ""),
+    textvariable=minute)
+
+mins_box.place(x=175, y=140)
+
+sec_box = Entry(
+    root,
+    width=3,
+    font=("Arial", 18, ""),
+    textvariable=second)
+
+sec_box.place(x=220, y=140)
 
 
-button1 = tk.Button(text='Generate Password', command=generate_password, bg='brown', fg='white',
-                    font=('helvetica', 9, 'bold'))
-canvas1.create_window(200, 180, window=button1)
+def countdowntimer():
+    try:
+        # store the user input
+        user_input = int(hour.get()) * 3600 + int(minute.get()) * 60 + int(second.get())
+    except:
+        messagebox.showwarning('INVALID', 'Invalid Input!')
+    while user_input > -1:
+
+        mins, secs = divmod(user_input, 60)
+
+        # Converting the input entered in mins or secs to hours,
+        hours = 0
+        if mins > 60:
+            hours, mins = divmod(mins, 60)
+
+        # store the value up to two decimal places
+        # using the format() method
+        hour.set("{0:2d}".format(hours))
+        minute.set("{0:2d}".format(mins))
+        second.set("{0:2d}".format(secs))
+
+        # updating the GUI window
+        root.update() # updates GUI 
+        time.sleep(1) # every 1 second
+
+
+        if (user_input == 10): # 10 seconds left until countdown end
+            playsound('tensecleft.mp3') # plays sound
+
+        # if user_input value = 0, then a messagebox pop's up
+        # with a message
+        if (user_input == 0): # countdown end
+            #messagebox.showinfo("Time Countdown", "Time Over")
+            threading.Thread(target=playsound, args=('timeup.mp3',)).start() # makes timeup.mp3 part of messagebox notif
+            messagebox.showinfo("Time's up!", 'Timer went off!') # popup notif
+
+
+        # decresing the value of temp
+        # after every one sec by one
+        user_input -= 1
+
+button1 = tk.Button(text='Enter', command=threading.Thread(target=countdowntimer).start)
+canvas1.create_window(200, 200, window=button1)
 
 root.mainloop()
